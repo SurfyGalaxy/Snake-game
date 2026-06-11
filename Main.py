@@ -62,15 +62,15 @@ def render_grid(screen, grid, cell_size, offset_x, offset_y):
             elif cell == 10:  # WASD Head
                 color = (0, 255, 0)  # Bright green
             elif 2 <= cell <= 110:  # WASD Body
-                intensity = 100 + (cell * 15)
+                intensity = 100 + ((cell % 10) * 15)  # Cycles every 10 segments
                 color = (0, intensity, 0)
             elif cell == 10 + offset:  # Arrow Head
                 color = (255, 0, 0)  # Bright red
             elif 2 + offset <= cell <= 110 + offset:  # Arrow Body
-                intensity = 100 + ((cell - offset) * 15)
+                intensity = 100 + (((cell - offset) % 10) * 15)  # Cycles every 10 segments
                 color = (intensity, 0, 0)
             else:  
-                color = (255, 255, 0)
+                color = (255, 255, 0)  # Food
             
             
             pygame.draw.rect(screen, color, (x, y, cell_size, cell_size))
@@ -101,8 +101,10 @@ class Player:
         self.player = player
 
         if player == "WASD":
+            self.size = p1_size
             self.movement = (0, 1)   # Moving right at start
         else:
+            self.size = p2_size
             self.movement = (0, -1)  # Moving left at start
             
 
@@ -124,30 +126,40 @@ class Player:
     def move_snake(self):
         if self.player == "Arrows":
             self.id_offset = offset
-            self.size = p2_size
         else:
             self.id_offset = 0
-            self.size = p1_size
         
         head_pos = find_thing(self.size + self.id_offset)
         if head_pos == (-1, -1):
-            # Well they're dead so...
             player_dead(self.player, self.old_head)
             return
-
+        
+        new_head = (head_pos[0] + self.movement[0], head_pos[1] + self.movement[1])
+        
+        if (new_head[0] < 0 or new_head[0] >= GRID_SIZE or 
+            new_head[1] < 0 or new_head[1] >= GRID_SIZE):
+            player_dead(self.player, self.old_head)
+            return
+        
+        no = see_thing(new_head)
+        
+        if no > 0:
+            player_dead(self.player, self.old_head)
+            return
+        
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
                 cell = grid[row][col]
-                if self.id_offset < cell <=  self.id_offset + 100:
+                if self.id_offset < cell <= self.id_offset + 100:
                     if cell - 1 == self.id_offset: 
                         change_grid((row, col), 0)  
                     else:
-                        change_grid((row, col), cell - 1) 
+                        change_grid((row, col), cell - 1)
         
-        new_head = (head_pos[0] + self.movement[0], head_pos[1] + self.movement[1])
-        if see_thing(new_head) > 0: # welp they ded
-            player_dead(self.player, self.old_head)
-            return
+        # Handle something
+        if no == -1:
+            self.size += 1
+        
         self.old_head = new_head
         change_grid(new_head, self.size + self.id_offset)
     
@@ -164,6 +176,7 @@ GRID_SIZE = 16
 create_grid(GRID_SIZE)
 change_grid((4, 4), 10)
 change_grid((8, 8), 1010)
+change_grid((10, 2), -1)
 change = speedup_amount
 p1_size = 10
 p2_size = 10
