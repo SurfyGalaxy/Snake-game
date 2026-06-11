@@ -37,6 +37,10 @@ def find_thing(target: Any) -> tuple[int, int]:
     
     return (-1, -1) # Just a sentinel  value
 
+def see_thing(place):
+    thing = grid[place[0]][place[1]] # 1 liner goes brrrr
+    return thing
+
 def change_grid(place: tuple[int, int], value: Any):
     row, col = place
     if row < 0 or col < 0 or row >= len(grid) or col >=  len(grid):
@@ -74,12 +78,21 @@ def render_grid(screen, grid, cell_size, offset_x, offset_y):
             pygame.draw.rect(screen, (80, 80, 80), (x, y, cell_size, cell_size), 1)
 
 
-def player_dead(dead):
+def player_dead(dead, location):
     if dead == "WASD":
-        winner = "ARROWS"
+        if see_thing(location) == p2_size + offset: # ey P2's also here
+            winner = "Draw"
+        else:
+            winner = "Arrows"
     else:
-        winner = "WASD"
-    print(f"Oh wow player using {dead} lost, good job {winner}")
+        if see_thing(location) == p1_size: # eyyy P1's here
+            winner = "Draw"
+        else:
+            winner = "WASD"
+    if winner == "Draw":
+        print("Wow. Nobody won. How about you two don't hit eachother's heads for once?")
+    else:
+        print(f"Oh wow player using {dead} lost, good job {winner}")
     pygame.quit() # temporary until i add rounds
     sys.exit()
 
@@ -119,7 +132,8 @@ class Player:
         head_pos = find_thing(self.size + self.id_offset)
         if head_pos == (-1, -1):
             # Well they're dead so...
-            player_dead(self.player)
+            player_dead(self.player, self.old_head)
+            return
 
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
@@ -131,6 +145,10 @@ class Player:
                         change_grid((row, col), cell - 1) 
         
         new_head = (head_pos[0] + self.movement[0], head_pos[1] + self.movement[1])
+        if see_thing(new_head) > 0: # welp they ded
+            player_dead(self.player, self.old_head)
+            return
+        self.old_head = new_head
         change_grid(new_head, self.size + self.id_offset)
     
         
@@ -139,7 +157,7 @@ class Player:
         
 
 # And now for actual code which runs:
-size = width, height = 320, 240 # Screen size
+size = width, height = 640, 480 # Screen size
 screen = pygame.display.set_mode(size) # Idk man this is just what we have ti do
 GRID_SIZE = 16
 
@@ -152,9 +170,9 @@ p2_size = 10
 p1 = Player(player="Arrows")
 p2 = Player(player="WASD")
 
-cell_pixel_size = 15 
-grid_offset_x = (320 - (GRID_SIZE * cell_pixel_size)) // 2
-grid_offset_y = (240 - (GRID_SIZE * cell_pixel_size)) // 2
+cell_pixel_size = 30 
+grid_offset_x = (640 - (GRID_SIZE * cell_pixel_size)) // 2
+grid_offset_y = (480 - (GRID_SIZE * cell_pixel_size)) // 2
 clock = pygame.time.Clock()
 frame = 0
 
