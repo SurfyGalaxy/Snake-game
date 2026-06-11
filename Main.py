@@ -1,6 +1,7 @@
 import sys
 import pygame
 import numpy as np
+import random
 from typing import Any
 from pygame.locals import *
 pygame.init()
@@ -96,6 +97,15 @@ def player_dead(dead, location):
     pygame.quit() # temporary until i add rounds
     sys.exit()
 
+def spawn_food(count):
+    while count != 0:
+        place = (random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1))
+        if see_thing(place) == 0:
+            change_grid(place, -1)
+        else:
+            spawn_food(1)
+        count -= 1
+
 class Player:
     def __init__(self, player):
         self.player = player
@@ -158,6 +168,7 @@ class Player:
         # Handle something
         if no == -1:
             self.size += 1
+            spawn_food(1)
         
         self.old_head = new_head
         change_grid(new_head, self.size + self.id_offset)
@@ -175,7 +186,7 @@ GRID_SIZE = 16
 create_grid(GRID_SIZE)
 change_grid((4, 4), 10)
 change_grid((8, 8), 1010)
-change_grid((10, 2), -1)
+spawn_food(2)
 change = speedup_amount
 p1_size = 10
 p2_size = 10
