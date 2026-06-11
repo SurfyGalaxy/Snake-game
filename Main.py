@@ -110,17 +110,16 @@ class Player:
 
     def process_input(self, direction: str):
         
-
-        if direction == "up": # Wooo spam!
+        if direction == "up" and self.movement != (1, 0): # Wooo spam!
             movement = (-1, 0)
-        elif direction == "right":
+        elif direction == "right" and self.movement != (0, -1):
             movement = (0, 1)
-        elif direction == "down":
+        elif direction == "down" and self.movement != (-1, 0):
             movement = (1, 0)
-        elif direction == "left":
+        elif direction == "left" and self.movement != (0, -1):
             movement = (0, -1)
         else:
-            movement = (0, 0)
+            movement = self.movement
         self.movement = movement
     
     def move_snake(self):
