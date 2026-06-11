@@ -62,13 +62,12 @@ def render_grid(screen, grid, cell_size, offset_x, offset_y):
             
             pygame.draw.rect(screen, color, (x, y, cell_size, cell_size))
             
-            # grid lines
             pygame.draw.rect(screen, (80, 80, 80), (x, y, cell_size, cell_size), 1)
 
 
 class Player:
-    def __init__(self,  score, player):
-        self.score = score
+    def __init__(self,  size, player):
+        self.size = size
         self.player = player
 
         if player == "WASD":
@@ -92,16 +91,26 @@ class Player:
         self.movement = movement
     
     def move_snake(self):
-        id_offset = 0
-        if self.player == "Arrows":
-            id_offset = 10 # For some reason makes it not error?
-        position = find_thing(1 + id_offset) # Is a tuple like (1, 5)
-
-        change_grid(position, 2 + id_offset)
-        print((self.player, position))
-        position = (position[0] + self.movement[0], position[1] + self.movement[1]) # Tuple maths
-        print(self.player, position)
-        change_grid(position, 1 + id_offset)
+        self.id_offset = 1000 if self.player == "Arrows" else 0
+        
+        head_pos = find_thing(self.size + self.id_offset)
+        if head_pos == (-1, -1):
+            return
+        
+        for row in range(GRID_SIZE):
+            for col in range(GRID_SIZE):
+                cell = grid[row][col]
+                if self.id_offset < cell <=  self.id_offset + 100:
+                    if cell - 1 == self.id_offset: 
+                        change_grid((row, col), 0)  
+                    else:
+                        change_grid((row, col), cell - 1) 
+        
+        new_head = (head_pos[0] + self.movement[0], head_pos[1] + self.movement[1])
+        change_grid(new_head, self.size + self.id_offset)
+        
+        
+        
 
 # And now for actual code which runs:
 size = width, height = 320, 240 # Screen size
@@ -109,10 +118,10 @@ screen = pygame.display.set_mode(size) # Idk man this is just what we have ti do
 GRID_SIZE = 16
 
 create_grid(GRID_SIZE)
-change_grid((4, 4), 1)
-change_grid((4, 8), 11)
-p1 = Player(score=0, player="Arrows")
-p2 = Player(score=0, player="WASD")
+change_grid((4, 4), 10)
+change_grid((4, 8), 110)
+p1 = Player(size=10, player="Arrows")
+p2 = Player(size=10, player="WASD")
 
 cell_pixel_size = 15 
 grid_offset_x = (320 - (GRID_SIZE * cell_pixel_size)) // 2
