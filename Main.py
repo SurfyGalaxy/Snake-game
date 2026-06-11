@@ -1,11 +1,21 @@
 import sys
 import pygame
 import numpy as np
+from typing import Any
 from pygame.locals import *
 pygame.init()
 grid = []
 
-# 0 = empty 1 = head, 2 = tail, 
+target_fps = 8 # (starting) fps
+speedup_interval = 20 # How quickly to speedup by 1fps 
+speedup_amount = 1 # How much to increase fps
+offset = 1000 # Im sure this'll never have to be edited... right?
+""" Because i'm too good for writing this anywhere else
+
+1-999 = P1
+1,000 - 1999 = P2
+0 = Empty
+-1 = Food """
 
 def create_grid(size: int) -> None: # First time using type hints
     global grid
@@ -25,14 +35,13 @@ def find_thing(target: Any) -> tuple[int, int]:
             col_idx = sublist.index(target)
             return (row_idx, col_idx)
     
-    return (-1, 0) # Just a sentinel  value
+    return (-1, -1) # Just a sentinel  value
 
 def change_grid(place: tuple[int, int], value: Any):
     row, col = place
     if row < 0 or col < 0 or row >= len(grid) or col >=  len(grid):
         #print(f"Invalid position {place}")
         return
-    print("Done")
     grid[row][col] = value
 
 def render_grid(screen, grid, cell_size, offset_x, offset_y):
@@ -46,18 +55,18 @@ def render_grid(screen, grid, cell_size, offset_x, offset_y):
             
             if cell == 0:  # Empty
                 color = (40, 40, 40)  # Dark gray
-            elif cell == 1:  # WASD Head
+            elif cell == 10:  # WASD Head
                 color = (0, 255, 0)  # Bright green
-            elif 2 <= cell <= 10:  # WASD Body
+            elif 2 <= cell <= 110:  # WASD Body
                 intensity = 100 + (cell * 15)
                 color = (0, intensity, 0)
-            elif cell == 11:  # Arrow Head
+            elif cell == 10 + offset:  # Arrow Head
                 color = (255, 0, 0)  # Bright red
-            elif 12 <= cell <= 20:  # Arrow Body
-                intensity = 100 + ((cell - 10) * 15)
+            elif 2 + offset <= cell <= 110 + offset:  # Arrow Body
+                intensity = 100 + ((cell - offset) * 15)
                 color = (intensity, 0, 0)
             else:  
-                color = (255, 255, 0)  
+                color = (255, 255, 0)
             
             
             pygame.draw.rect(screen, color, (x, y, cell_size, cell_size))
@@ -65,15 +74,24 @@ def render_grid(screen, grid, cell_size, offset_x, offset_y):
             pygame.draw.rect(screen, (80, 80, 80), (x, y, cell_size, cell_size), 1)
 
 
+def player_dead(dead):
+    if dead == "WASD":
+        winner = "ARROWS"
+    else:
+        winner = "WASD"
+    print(f"Oh wow player using {dead} lost, good job {winner}")
+    pygame.quit() # temporary until i add rounds
+    sys.exit()
+
 class Player:
-    def __init__(self,  size, player):
-        self.size = size
+    def __init__(self, player):
         self.player = player
 
         if player == "WASD":
-            self.movement = (0, 1)   # Moving right
+            self.movement = (0, 1)   # Moving right at start
         else:
-            self.movement = (0, -1)  # Moving left
+            self.movement = (0, -1)  # Moving left at start
+            
 
     def process_input(self, direction: str):
         
@@ -91,12 +109,18 @@ class Player:
         self.movement = movement
     
     def move_snake(self):
-        self.id_offset = 1000 if self.player == "Arrows" else 0
+        if self.player == "Arrows":
+            self.id_offset = offset
+            self.size = p2_size
+        else:
+            self.id_offset = 0
+            self.size = p1_size
         
         head_pos = find_thing(self.size + self.id_offset)
         if head_pos == (-1, -1):
-            return
-        
+            # Well they're dead so...
+            player_dead(self.player)
+
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
                 cell = grid[row][col]
@@ -108,7 +132,9 @@ class Player:
         
         new_head = (head_pos[0] + self.movement[0], head_pos[1] + self.movement[1])
         change_grid(new_head, self.size + self.id_offset)
+    
         
+
         
         
 
@@ -119,14 +145,16 @@ GRID_SIZE = 16
 
 create_grid(GRID_SIZE)
 change_grid((4, 4), 10)
-change_grid((4, 8), 110)
-p1 = Player(size=10, player="Arrows")
-p2 = Player(size=10, player="WASD")
+change_grid((8, 8), 1010)
+change = speedup_amount
+p1_size = 10
+p2_size = 10
+p1 = Player(player="Arrows")
+p2 = Player(player="WASD")
 
 cell_pixel_size = 15 
 grid_offset_x = (320 - (GRID_SIZE * cell_pixel_size)) // 2
 grid_offset_y = (240 - (GRID_SIZE * cell_pixel_size)) // 2
-
 clock = pygame.time.Clock()
 frame = 0
 
@@ -163,11 +191,10 @@ while True:
                 elif event.key == pygame.K_a:
                     p2.process_input("left")
 
-    if frame == 12:
+    if str(frame / target_fps).endswith(".0"): # bc 12 is 60 (native fps) / 5 (target fps)
         p1.move_snake()
         p2.move_snake()
-        frame = 0
-
+    
 
     screen.fill("purple")
 
