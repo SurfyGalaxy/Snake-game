@@ -6,6 +6,7 @@ import pygame_widgets
 from typing import Any
 from pygame.locals import *
 from pygame_widgets.button import Button
+pygame.font.init()
 pygame.init()
 grid = []
 
@@ -18,12 +19,16 @@ grid_size = 32 # How big should the grid be?
 padding = 100 # How many pixels off the sides should the grid be?
 fruits = 2 # How many fruit s to spawn?
 start_size = 10 # How long to start snakes?
+my_font = pygame.font.SysFont('Comic Sans MS', 100) # bc who doesn't like scores in comic sans?
 """ Because i'm too good for writing this anywhere else
 
 1-999 = P1
 1,000 - 1999 = P2
 0 = Empty
 -1 = Food """
+p1_score = 0
+p2_score = 0
+score_text = my_font.render("0   0", False, (255, 255, 255))
 
 def create_grid(size: int) -> None: # First time using type hints
     global grid
@@ -85,21 +90,24 @@ def render_grid(screen, grid, cell_size, offset_x, offset_y):
             pygame.draw.rect(screen, (80, 80, 80), (x, y, cell_size, cell_size), 1)
 
 def player_dead(dead, location):
-    global mode
+    global mode, score_text, p1_score, p2_score
     if dead == "WASD":
         if see_thing(location) == p2_size + offset: # ey P2's also here
             winner = "Draw"
         else:
             winner = "Arrows"
+            p1_score += 1
     else:
         if see_thing(location) == p1_size: # eyyy P1's here
             winner = "Draw"
         else:
             winner = "WASD"
+            p2_score += 1
     if winner == "Draw":
         print("Wow. Nobody won. How about you two don't hit eachother's heads for once?")
     else:
         print(f"Oh wow player using {dead} lost, good job {winner}")
+    score_text = my_font.render(str(p2_score) + "   " + str(p1_score), False, (255, 255, 255))
     mode = "not Game"
 
 def spawn_food(count):
@@ -215,6 +223,7 @@ def init_first_game():
     monitor_size = pygame.display.get_desktop_sizes()
     size = width, height = monitor_size[0][0], monitor_size[0][1] # Screen size
     screen = pygame.display.set_mode(size) # Idk man this is just what we have ti do
+    pygame.display.set_caption("Snek")
 def init_game():
     # And now for actual code which runs:
     global monitor_size, size, screen, change, p1, p2, cell_pixel_size, grid_offset_x, grid_offset_y
@@ -230,12 +239,13 @@ def init_game():
     p2 = Player(player="WASD")
 init_first_game()
 init_game()
-if monitor_size[0][0] <= monitor_size[0][1]: # For the psycos with vertical monitors
+talls = monitor_size[0][1] - 68 # height of the font
+if monitor_size[0][0] <= talls: # For the psycos with vertical monitors
     cell_pixel_size = (monitor_size[0][0] - padding) // grid_size
 else:
-    cell_pixel_size = (monitor_size[0][1] - padding) // grid_size
+    cell_pixel_size = (talls - padding) // grid_size
 grid_offset_x = (monitor_size[0][0] - (grid_size * cell_pixel_size)) // 2
-grid_offset_y = (monitor_size[0][1] - (grid_size * cell_pixel_size)) // 2
+grid_offset_y = (monitor_size[0][1] + 68 - (grid_size * cell_pixel_size)) // 2
 clock = pygame.time.Clock()
 
 button = Button(screen, monitor_size[0][0] // 2 - 150, monitor_size[0][1] // 2 - 72, 300, 150, text="Start!", onClick=lambda: do_thing())
@@ -279,8 +289,8 @@ while True:
     elif mode == "not Game":
         screen.fill("black")
         pygame_widgets.update(event)
-    
+    size = score_text.get_width()
+    screen.blit(score_text, (monitor_size[0][0] // 2 - size // 2, padding - 68))
     
     pygame.display.flip()
     clock.tick(60)
-    
