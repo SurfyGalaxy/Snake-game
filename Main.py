@@ -15,7 +15,7 @@ speedup_interval = 20 # How quickly to speedup by 1fps (in seconds)
 speedup_amount = 0.2 # percentage to increase speed by
 offset = 1000 # Im sure this'll never have to be edited... right?
 grid_size = 32 # How big should the grid be?
-padding = 64 # How many pixels off the sides should the grid be?
+padding = 100 # How many pixels off the sides should the grid be?
 fruits = 2 # How many fruit s to spawn?
 start_size = 10 # How long to start snakes?
 """ Because i'm too good for writing this anywhere else
@@ -111,6 +111,8 @@ def spawn_food(count):
             spawn_food(1)
         count -= 1
 
+p1_size = start_size
+p2_size = start_size
 
 class Player:
     def __init__(self, player):
@@ -208,22 +210,25 @@ def do_thing():
     global mode
     mode = "Game"
     init_game()
-
-def init_game():
-    # And now for actual code which runs:
-    global monitor_size, size, screen, change, p1, p2, cell_pixel_size, grid_offset_x, grid_offset_y  #
+def init_first_game():
+    global monitor_size, size, screen
     monitor_size = pygame.display.get_desktop_sizes()
     size = width, height = monitor_size[0][0], monitor_size[0][1] # Screen size
     screen = pygame.display.set_mode(size) # Idk man this is just what we have ti do
+def init_game():
+    # And now for actual code which runs:
+    global monitor_size, size, screen, change, p1, p2, cell_pixel_size, grid_offset_x, grid_offset_y
+    p1_size = start_size
+    p2_size = start_size
     create_grid(grid_size)
     change_grid((grid_size // 4, grid_size // 2), 10)
     change_grid((grid_size - grid_size // 4, grid_size // 2), 1010)
     spawn_food(fruits)
     change = speedup_amount
-    p1_size = start_size
-    p2_size = start_size
+    
     p1 = Player(player="Arrows")
     p2 = Player(player="WASD")
+init_first_game()
 init_game()
 if monitor_size[0][0] <= monitor_size[0][1]: # For the psycos with vertical monitors
     cell_pixel_size = (monitor_size[0][0] - padding) // grid_size
@@ -272,6 +277,7 @@ while True:
     if mode == "Game":
         game.run_game()
     elif mode == "not Game":
+        screen.fill("black")
         pygame_widgets.update(event)
     
     
