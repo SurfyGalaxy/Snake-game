@@ -7,10 +7,13 @@ from pygame.locals import *
 pygame.init()
 grid = []
 
+# Soon to be a YAML File :)
 target_fps = 8 # (starting) fps
 speedup_interval = 20 # How quickly to speedup by 1fps 
 speedup_amount = 1 # How much to increase fps
 offset = 1000 # Im sure this'll never have to be edited... right?
+grid_size = 32 # How big should the grid be?
+padding = 64 # How many pixels off the sides should the grid be?
 """ Because i'm too good for writing this anywhere else
 
 1-999 = P1
@@ -99,7 +102,7 @@ def player_dead(dead, location):
 
 def spawn_food(count):
     while count != 0:
-        place = (random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1))
+        place = (random.randint(0, grid_size-1), random.randint(0, grid_size-1))
         if see_thing(place) == 0:
             change_grid(place, -1)
         else:
@@ -145,8 +148,8 @@ class Player:
         
         new_head = (head_pos[0] + self.movement[0], head_pos[1] + self.movement[1])
         
-        if (new_head[0] < 0 or new_head[0] >= GRID_SIZE or 
-            new_head[1] < 0 or new_head[1] >= GRID_SIZE):
+        if (new_head[0] < 0 or new_head[0] >= grid_size or 
+            new_head[1] < 0 or new_head[1] >= grid_size):
             player_dead(self.player, self.old_head)
             return
         
@@ -156,8 +159,8 @@ class Player:
             player_dead(self.player, self.old_head)
             return
         
-        for row in range(GRID_SIZE):
-            for col in range(GRID_SIZE):
+        for row in range(grid_size):
+            for col in range(grid_size):
                 cell = grid[row][col]
                 if self.id_offset < cell <= self.id_offset + 100:
                     if cell - 1 == self.id_offset: 
@@ -179,13 +182,13 @@ class Player:
         
 
 # And now for actual code which runs:
-size = width, height = 640, 480 # Screen size
+monitor_size = pygame.display.get_desktop_sizes()
+size = width, height = monitor_size[0][0], monitor_size[0][1] # Screen size
 screen = pygame.display.set_mode(size) # Idk man this is just what we have ti do
-GRID_SIZE = 16
 
-create_grid(GRID_SIZE)
-change_grid((4, 4), 10)
-change_grid((8, 8), 1010)
+create_grid(grid_size)
+change_grid((grid_size // 4, grid_size // 2), 10)
+change_grid((grid_size - grid_size // 4, grid_size // 2), 1010)
 spawn_food(2)
 change = speedup_amount
 p1_size = 10
@@ -193,9 +196,12 @@ p2_size = 10
 p1 = Player(player="Arrows")
 p2 = Player(player="WASD")
 
-cell_pixel_size = 30 
-grid_offset_x = (640 - (GRID_SIZE * cell_pixel_size)) // 2
-grid_offset_y = (480 - (GRID_SIZE * cell_pixel_size)) // 2
+if monitor_size[0][0] <= monitor_size[0][1]: # For the psycos with vertical monitors
+    cell_pixel_size = (monitor_size[0][0] - padding) // grid_size
+else:
+    cell_pixel_size = (monitor_size[0][1] - padding) // grid_size
+grid_offset_x = (monitor_size[0][0] - (grid_size * cell_pixel_size)) // 2
+grid_offset_y = (monitor_size[0][1] - (grid_size * cell_pixel_size)) // 2
 clock = pygame.time.Clock()
 frame = 0
 
@@ -237,7 +243,7 @@ while True:
         p2.move_snake()
     
 
-    screen.fill("purple")
+    screen.fill("black")
 
     render_grid(screen, grid, cell_pixel_size, grid_offset_x, grid_offset_y)
     
