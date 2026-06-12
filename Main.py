@@ -104,9 +104,11 @@ def player_dead(dead, location):
             winner = "WASD"
             p2_score += 1
     if winner == "Draw":
-        print("Wow. Nobody won. How about you two don't hit eachother's heads for once?")
+        #print("Wow. Nobody won. How about you two don't hit eachother's heads for once?")
+        pass
     else:
-        print(f"Oh wow player using {dead} lost, good job {winner}")
+        #print(f"Oh wow player using {dead} lost, good job {winner}")
+        pass
     score_text = my_font.render(str(p2_score) + "   " + str(p1_score), False, (255, 255, 255))
     mode = "not Game"
 
