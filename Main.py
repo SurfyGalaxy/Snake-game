@@ -8,12 +8,14 @@ pygame.init()
 grid = []
 
 # Soon to be a YAML File :)
-target_fps = 8 # (starting) fps
-speedup_interval = 20 # How quickly to speedup by 1fps 
-speedup_amount = 1 # How much to increase fps
+target_fps = 5# (starting) fps
+speedup_interval = 20 # How quickly to speedup by 1fps (in seconds)
+speedup_amount = 0.2 # percentage to increase speed by
 offset = 1000 # Im sure this'll never have to be edited... right?
 grid_size = 32 # How big should the grid be?
 padding = 64 # How many pixels off the sides should the grid be?
+fruits = 2 # How many fruits to spawn?
+start_size = 10 # How long to start snakes?
 """ Because i'm too good for writing this anywhere else
 
 1-999 = P1
@@ -189,10 +191,10 @@ screen = pygame.display.set_mode(size) # Idk man this is just what we have ti do
 create_grid(grid_size)
 change_grid((grid_size // 4, grid_size // 2), 10)
 change_grid((grid_size - grid_size // 4, grid_size // 2), 1010)
-spawn_food(2)
+spawn_food(fruits)
 change = speedup_amount
-p1_size = 10
-p2_size = 10
+p1_size = start_size
+p2_size = start_size
 p1 = Player(player="Arrows")
 p2 = Player(player="WASD")
 
@@ -238,10 +240,14 @@ while True:
                 elif event.key == pygame.K_a:
                     p2.process_input("left")
 
-    if str(frame / target_fps).endswith(".0"): # bc 12 is 60 (native fps) / 5 (target fps)
+    if frame % (60 // target_fps) == 0:
         p1.move_snake()
         p2.move_snake()
     
+    if frame % (60 * speedup_interval) == 0 and frame > 0:
+        target_fps = int(target_fps * (1 + speedup_amount))
+        if target_fps > 60:
+            target_fps = 60
 
     screen.fill("black")
 
