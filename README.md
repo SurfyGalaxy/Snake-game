@@ -24,7 +24,7 @@ Not much, just
 
 
 ## How to run
-1. Download my <s>waste of disk space</s> game from the Releases tab
+1. Download my <s>waste of disk space</s> game from the <a href="https://github.com/SurfyGalaxy/Snake-game/releases">Releases tab</a>
 2. Double click it <s>wow riveting gameplay 10/10</s>
 3. Play Snek
 4. <s>Find more friends bc you just lost one</s>
