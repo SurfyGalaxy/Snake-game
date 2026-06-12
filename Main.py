@@ -131,7 +131,7 @@ class Player:
             movement = (0, 1)
         elif direction == "down" and self.movement != (-1, 0):
             movement = (1, 0)
-        elif direction == "left" and self.movement != (0, -1):
+        elif direction == "left" and self.movement != (0, 1):
             movement = (0, -1)
         else:
             movement = self.movement
@@ -179,7 +179,25 @@ class Player:
         change_grid(new_head, self.size + self.id_offset)
     
         
+class game():
+    def __init__(self):
+        self.frame = 0
+    
+    def run_game(self):
+        global grid, cell_pixel_size, grid_offset_x, grid_offset_y, target_fps, speedup_amount, speedup_interval, p1, p2
+        if self.frame % (60 // target_fps) == 0:
+            p1.move_snake()
+            p2.move_snake()
+        
+        if self.frame % (60 * speedup_interval) == 0 and self.frame > 0:
+            target_fps = int(target_fps * (1 + speedup_amount))
+            if target_fps > 60:
+                target_fps = 60
 
+        screen.fill("black")
+
+        render_grid(screen, grid, cell_pixel_size, grid_offset_x, grid_offset_y)
+        self.frame += 1
         
         
 
@@ -205,20 +223,20 @@ else:
 grid_offset_x = (monitor_size[0][0] - (grid_size * cell_pixel_size)) // 2
 grid_offset_y = (monitor_size[0][1] - (grid_size * cell_pixel_size)) // 2
 clock = pygame.time.Clock()
-frame = 0
+
 
 
 # Pygame time!
 # Expect extremely messy code, code which doesn't make sense and no semblence of PEP compliance
-
-
+game = game()
+mode = "Game"
 while True: 
     # Inputs bc im too lazy to put it in a class
     for event in pygame.event.get():
         if event.type == pygame.QUIT: # Because pkill is too hard
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN and mode == "Game":
             if event.key == pygame.K_UP or event.key == pygame.K_w:
                 if event.key == pygame.K_UP:
                     p1.process_input("up")
@@ -240,19 +258,11 @@ while True:
                 elif event.key == pygame.K_a:
                     p2.process_input("left")
 
-    if frame % (60 // target_fps) == 0:
-        p1.move_snake()
-        p2.move_snake()
-    
-    if frame % (60 * speedup_interval) == 0 and frame > 0:
-        target_fps = int(target_fps * (1 + speedup_amount))
-        if target_fps > 60:
-            target_fps = 60
-
-    screen.fill("black")
-
-    render_grid(screen, grid, cell_pixel_size, grid_offset_x, grid_offset_y)
+    if mode == "Game":
+        game.run_game()
+    elif mode == "Menu": # Will be done soon:tm:
+        pass
     
     pygame.display.flip()
     clock.tick(60)
-    frame += 1
+    
