@@ -35,4 +35,4 @@ Not much, just
 
 
 <sub>I mean it's not even got good graphics... it's literally squares!</sub>
-<img width="1057" height="1033" alt="screenshot" src="https://github.com/user-attachments/assets/7993496d-6fb7-49c4-b2a5-afe00f2c702c" />
+<img width="1080" height="1047" alt="image" src="https://github.com/user-attachments/assets/9101c53b-a9fe-4adf-89b6-5b4308c96e42" />
